@@ -35,6 +35,6 @@ end
     @test h.todo == "TODO"
     @test h.tags == ["email", "noexport"]
     @test h.priority == 'A'
-    @test isa(h.section, Section)
-    @test isa(h.headlines, AbstractArray{Headline,1})
+    @test h.section isa Section
+    @test h.headlines isa AbstractArray{Headline,1}
 end
