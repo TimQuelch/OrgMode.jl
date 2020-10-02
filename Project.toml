@@ -1,0 +1,7 @@
+name = "OrgMode"
+uuid = "efd43031-27bf-443e-b336-0688ecb9ff2a"
+authors = ["Tim Quelch <tim@tquelch.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.4"
