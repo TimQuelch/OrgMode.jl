@@ -1,4 +1,5 @@
-# Define the type hierarchy for org-mode elements and objects
+module Types
+export Environment, Element, GreaterElement, Object, Section, Headline, PlainText, Paragraph
 
 macro inherited(super, name, fields...)
     return quote
@@ -10,8 +11,40 @@ end
 
 abstract type Environment end
 
+abstract type Object <: Environment end
+macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) end
+# @object(Entity)
+# @object(ExportSnippet)
+# @object(InlineBabelCall)
+# @object(InlineSrcBlock)
+# @object(LatexFragment)
+# @object(LineBreak)
+# @object(Macro)
+# @object(StatisticsCookies)
+# @object(Target)
+# @object(Timestamp)
+@object(PlainText, contents::AbstractString)
+
+# abstract type GreaterObject <: Object end
+# macro greater_object(name, fields...) return :(@inherited(GreaterObject, $name, $(fields...))) end
+# @greater_object(FootnoteReference)
+# @greater_object(Link)
+# @greater_object(Subscript)
+# @greater_object(Superscript)
+# @greater_object(RadioTarget)
+# @greater_object(TableCell)
+
+# abstract type TextMarkup <: GreaterObject end
+# macro text_markup(name, fields...) return :(@inherited(TextMarkup, $name, $(fields...))) end
+# @text_markup(Bold)
+# @text_markup(Verbatim)
+# @text_markup(Italic)
+# @text_markup(Strikethrough)
+# @text_markup(Underline)
+# @text_markup(Code)
+
 abstract type Element <: Environment end
-# macro element(name, fields...) return :(@inherited(Element, $name, $(fields...))) end
+macro element(name, fields...) return :(@inherited(Element, $name, $(fields...))) end
 # @element(BabelCall)
 # @element(Clock)
 # @element(Comment)
@@ -21,7 +54,8 @@ abstract type Element <: Environment end
 # @element(Keyword)
 # @element(LatexEnvironment)
 # @element(NodeProperty)
-# @element(Paragraph)
+@element(Paragraph, children::AbstractArray{Object,1})
+children(p::Paragraph) = p.children
 # @element(Planning)
 # @element(TableRow)
 
@@ -35,8 +69,14 @@ abstract type Element <: Environment end
 
 abstract type GreaterElement <: Element end
 macro greater_element(name, fields...)
-    return :(@inherited(GreaterElement, $name, children::AbstractArray{Element,1}, $(fields...)))
+    return :(@inherited(
+        GreaterElement,
+        $name,
+        children::AbstractArray{Element,1},
+        $(fields...)))
 end
+children(x::GreaterElement) = x.children
+
 # @greater_element(Drawer)
 # @greater_element(PropertyDrawer)
 # @greater_element(FootnoteDefinition)
@@ -57,6 +97,8 @@ Base.@kwdef struct Headline <: GreaterElement
         new(level, title, todo, tags, priority, section, headlines)
     end
 end
+children(x::Headline) = vcat(x.section, x.headlines)
+
 # @greater_element(InlineTask)
 # @greater_element(Item)
 # @greater_element(PlainList)
@@ -69,33 +111,4 @@ end
 # @greater_block(SpecialBlock)
 # @greater_block(QuoteBlock)
 
-# abstract type Object <: Environment end
-# macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) end
-# @object(Entity)
-# @object(ExportSnippet)
-# @object(InlineBabelCall)
-# @object(InlineSrcBlock)
-# @object(LatexFragment)
-# @object(LineBreak)
-# @object(Macro)
-# @object(StatisticsCookies)
-# @object(Target)
-# @object(Timestamp)
-
-# abstract type GreaterObject <: Object end
-# macro greater_object(name, fields...) return :(@inherited(GreaterObject, $name, $(fields...))) end
-# @greater_object(FootnoteReference)
-# @greater_object(Link)
-# @greater_object(Subscript)
-# @greater_object(Superscript)
-# @greater_object(RadioTarget)
-# @greater_object(TableCell)
-
-# abstract type TextMarkup <: GreaterObject end
-# macro text_markup(name, fields...) return :(@inherited(TextMarkup, $name, $(fields...))) end
-# @text_markup(Bold)
-# @text_markup(Verbatim)
-# @text_markup(Italic)
-# @text_markup(Strikethrough)
-# @text_markup(Underline)
-# @text_markup(Code)
+end
