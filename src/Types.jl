@@ -1,5 +1,5 @@
 module Types
-export Environment, Element, GreaterElement, Object, Section, Headline, PlainText, Paragraph
+export Document, Environment, Element, GreaterElement, Object, Section, Headline, PlainText, Paragraph, children
 
 macro inherited(super, name, fields...)
     return quote
@@ -110,5 +110,11 @@ children(x::Headline) = vcat(x.section, x.headlines)
 # @greater_block(DynamicBlock)
 # @greater_block(SpecialBlock)
 # @greater_block(QuoteBlock)
+
+
+struct Document
+    elements::AbstractArray{Element,1}
+end
+children(x::Document) = x.elements
 
 end
