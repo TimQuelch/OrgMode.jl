@@ -97,7 +97,7 @@ Base.@kwdef struct Headline <: GreaterElement
         new(level, title, todo, tags, priority, section, headlines)
     end
 end
-children(x::Headline) = vcat(x.section, x.headlines)
+children(x::Headline) = isnothing(x.section) ? x.headlines : vcat(x.section, x.headlines)
 
 # @greater_element(InlineTask)
 # @greater_element(Item)

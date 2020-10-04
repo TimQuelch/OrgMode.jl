@@ -1,4 +1,13 @@
-using OrgMode: GreaterElement, Element, Environment, Headline, Section
+using OrgMode
+using OrgMode.Types
+
+@testset "Object" begin
+    @test Object <: Environment
+end
+
+@testset "Element" begin
+    @test Element <: Environment
+end
 
 @testset "GreaterElement" begin
     @test GreaterElement <: Element
@@ -41,4 +50,27 @@ end
         @test h.section isa Section
         @test h.headlines isa AbstractArray{Headline,1}
     end
+end
+
+@testset "PlainText" begin
+    @test PlainText <: Object
+    @test hasfield(PlainText, :contents)
+
+    @test PlainText("Test string").contents == "Test string"
+    @test PlainText("Test string\nWith newline").contents == "Test string\nWith newline"
+    @test PlainText("   trailing  whitespace  ").contents == "   trailing  whitespace  "
+end
+
+@testset "Paragraph" begin
+    @test Paragraph <: Element
+
+    ts = [PlainText("a"), PlainText("b"), PlainText("c")]
+    p = Paragraph([PlainText("a"), PlainText("b"), PlainText("c")])
+    @test children(p) == ts
+end
+
+@testset "Document" begin
+    es = [Headline(level=1), Section([]), Headline(level=3)]
+    d = Document(es)
+    @test children(d) == es
 end
