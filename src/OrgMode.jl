@@ -1,8 +1,8 @@
 module OrgMode
 
 include("Types.jl")
-using .Types
 include("Parser.jl")
+using .Types
 using .Parser
 using .Parser: parse
 
