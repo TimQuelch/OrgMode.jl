@@ -6,6 +6,7 @@ using ..Types
 using Lazy
 
 const HEADLINE_REGEX = r"^(\*+)\s+(.*?)?\s*?$"m
+const LINEBREAK_REGEX = r"\\\\s+$"m
 
 nextHeadline(s, offset=1) = match(HEADLINE_REGEX, s, offset)
 nextHeadline(s, offset, level) = match(Regex("^(\\*{1,$level})\\s+(.*?)?\\s*?\$", "m"), s, offset)
