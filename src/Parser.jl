@@ -5,9 +5,116 @@ using ..Types
 
 using Lazy
 
-const HEADLINE_REGEX = r"^(\*+)\s+(.*?)?\s*?$"m
+const HEADLINE_RE= r"^(\*+)\s+(.*?)?\s*?$"m
+const NONEMPTY_LINE_RE= r"^.*\S+.*$"m
 
-nextHeadline(s, offset=1) = match(HEADLINE_REGEX, s, offset)
+const ELEMENT_BEGIN_RE = Dict(
+    Clock => r"^\s*CLOCK:"m,
+    LatexEnvironment => r"^\s*\\begin\{([A-Za-z0-9*]+)\}"m,
+    Drawer => r"^\s*:((?:\w|[-_])+):\s*$"m,
+    FixedWidthLine => r"^\s*:( |$)"m,
+    Block => r"^\s*#\+begin_(\S+)"mi,
+)
+
+const ELEMENT_END_RE = Dict(
+    Drawer => r"^\s*:end:\s*$"mi
+)
+
+const BLOCK_TYPE_STRINGS = Dict(
+    CommentBlock => "comment",
+    ExampleBlock => "example",
+    ExportBlock => "export",
+    SrcBlock => "src",
+    VerseBlock => "verse",
+    # CenterBlock => "center",
+    # QuoteBlock => "quote",
+)
+
+macro p_str(s) s end
+const PARAGRAPH_BREAK_REGEX = Regex(
+    join([
+        p"^(?:",                      # Start line and capture
+        p"\*+|",                      # Headlines
+        p"\[fn:[-_\w]+\]|",           # Footnote definitions
+        p"%%\(|",                     # Diary sexps
+        p"\s*(?:",                    # Lines starting with whitespace group
+        p"$|",                        # Empty lines
+        p"\||",                       # Tables
+        p"\+(?:-+\+)+\s*$|",          # Tables
+        # Comments, keywords, blocks
+        p"#(?: |$|\+(?:BEGIN_\S+|\S+(?:[.*])?:[\s]*))|",
+        p":(?: |$|.+:\s+$)|",         # Drawers and fixed width areas
+        p"-{5,}\s*$|",                # Horizontal rules
+        p"\\begin{([A-Za-z0-9*]+)}|", # LaTeX environments
+        p"CLOCK:|",                   # Clock lines
+        # Lists
+        p"(?:[-+*]|(?:[0-9]+|[A-Za-z])[.\)])(?:\s|$)",
+        p"))"]),
+    "im")
+
+function elementEnd(::Any, s)
+    m = match(r"^"m, s, 2)
+    @debug "Generic element end" m
+    return isnothing(m) ? nothing : m.offset - 1
+end
+
+function elementEnd(t::Type{LatexEnvironment}, s)
+    @debug "Latex element string" s ELEMENT_BEGIN_RE[t]
+    b = match(ELEMENT_BEGIN_RE[t], s)
+    @debug "Latex begin match" b
+    envtype = replace(b[1], "*" => "\\*")
+    r = Regex("\\\\end\\{$envtype\\}\\s*\$", "m")
+    @debug "Latex end regex" r
+    e = match(r, s, b.offset + length(b.match))
+    @debug "Latex environment beginning and end" b e
+    return e.offset + length(e.match)
+end
+
+function elementEnd(t::Type{Block}, s)
+    b = match(ELEMENT_BEGIN_RE[t], s)
+    r = Regex("^\\s*#\\+end_$(b[1])\\s*\$", "mi")
+    @debug "Block end regex" r
+    e = match(r, s, b.offset + length(b.match))
+    @debug "Block beginning and end" b e
+    return e.offset + length(e.match)
+end
+
+function elementEnd(t::Type{Drawer}, s)
+    e = match(ELEMENT_END_RE[t], s)
+    @debug "Drawer end" e
+    return e.offset + length(e.match)
+end
+
+function elementEnd(::Type{Paragraph}, s)
+    e = match(PARAGRAPH_BREAK_REGEX, s)
+    @debug "Paragraph end" e
+    if isnothing(e)
+        return nothing
+    else
+        m = match(r"\s*", s, e.offset)
+        if isnothing(m)
+            return e.offset - 1
+        else
+            return m.offset + length(m.match) - 1
+        end
+    end
+end
+
+function extractElement(s)
+    type = findfirst(re -> startswith(s, re), ELEMENT_BEGIN_RE)
+    if isnothing(type)
+        type = Paragraph
+    end
+    endpos = elementEnd(type, s)
+    @debug "Extracting element of type $type. end position identified at $endpos"
+    if isnothing(endpos)
+        return (parse(s, type), "")
+    else
+        return (parse(SubString(s, 1, endpos - 1), type), SubString(s, endpos))
+    end
+end
+
+nextHeadline(s, offset=1) = match(HEADLINE_RE, s, offset)
 nextHeadline(s, offset, level) = match(Regex("^(\\*{1,$level})\\s+(.*?)?\\s*?\$", "m"), s, offset)
 
 function parse(s, ::Type{Document})
@@ -17,18 +124,47 @@ function parse(s, ::Type{Document})
     return Document([section; headlines])
 end
 
+function parse(s, ::Type{T}) where {T<:Element}
+    @debug "Parsing generic element ($T) from" s
+    return T(PlainText(s))
+end
+
 function parse(s, ::Type{Paragraph})
     @debug "Parsing paragraph from" s
     return Paragraph([PlainText(s)])
 end
 
+function parse(s, t::Type{Block})
+    @debug "Parsing block from" s
+    m = match(ELEMENT_BEGIN_RE[t], s)
+    type = findfirst(s -> s == lowercase(m[1]), BLOCK_TYPE_STRINGS)
+    if type === VerseBlock
+        return type([PlainText(s)])
+    elseif type === SrcBlock || type === ExportBlock
+        return type(PlainText(s), "placeholder!")
+    end
+    return type(PlainText(s))
+end
+
+function parse(s, t::Type{Drawer})
+    @debug "Parsing $t from" s
+    b = match(ELEMENT_BEGIN_RE[t], s)
+    e = match(ELEMENT_END_RE[t], s)
+    return Drawer(extractElements(SubString(s, b.offset + length(b.match), e.offset)))
+end
+
 function parse(s, ::Type{Section})
     @debug "Parsing section from" s
-    return @>>(split(s, r"\n{2,}"; keepempty=false),
-               map(strip),
-               filter(p -> !isempty(p)),
-               map(p -> parse(p, Paragraph)),
-               Section)
+    return Section(extractElements(s))
+end
+
+function extractElements(s)
+    els = Element[]
+    while (m = match(NONEMPTY_LINE_RE, s); !isnothing(m))
+        el, s = extractElement(SubString(s, m.offset))
+        push!(els, el)
+    end
+    return els
 end
 
 function extractSectionAndHeadlines(s)
@@ -43,7 +179,7 @@ function extractSectionAndHeadlines(s)
         cur = next
         l = length(cur[1])
         @debug "Searching for headline of level $l or less"
-        next = nextHeadline(s, cur.offset+cur.match.ncodeunits, l)
+        next = nextHeadline(s, cur.offset + length(cur.match), l)
         if isnothing(next)
             @debug "No headline found"
             hsub = SubString(s, cur.offset)
@@ -68,7 +204,7 @@ function parse(s, ::Type{Headline})
     @debug "Headline itself is" m
     level = length(m[1])
     title = m[2]
-    s = SubString(s, m.offset+m.match.ncodeunits)
+    s = SubString(s, m.offset + length(m.match))
     (section, headlines) = extractSectionAndHeadlines(s)
     return Headline(level=level, title=title, section=section, headlines=headlines)
 end
