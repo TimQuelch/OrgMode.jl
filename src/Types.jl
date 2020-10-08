@@ -1,5 +1,9 @@
 module Types
-export Document, Environment, Element, GreaterElement, Object, Section, Headline, PlainText, Paragraph, children
+export Document, Environment, Element, GreaterElement, Block, Object, Section, Headline, PlainText
+export Paragraph, Clock, LatexEnvironment, FixedWidthLine, Drawer, CommentBlock, SrcBlock
+export ExampleBlock, ExportBlock, VerseBlock
+
+export children
 
 macro inherited(super, name, fields...)
     return quote
@@ -46,26 +50,27 @@ macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) 
 abstract type Element <: Environment end
 macro element(name, fields...) return :(@inherited(Element, $name, $(fields...))) end
 # @element(BabelCall)
-# @element(Clock)
+@element(Clock, contents::PlainText)
 # @element(Comment)
 # @element(DiarySexp)
-# @element(FixedWidthLine)
+@element(FixedWidthLine, contents::PlainText)
 # @element(HorizontalRule)
 # @element(Keyword)
-# @element(LatexEnvironment)
+@element(LatexEnvironment, contents::PlainText)
 # @element(NodeProperty)
 @element(Paragraph, children::Vector{Object})
 children(p::Paragraph) = p.children
 # @element(Planning)
 # @element(TableRow)
 
-# abstract type Block <: Element end
-# macro block(name, fields...) return :(@inherited(Block, $name, $(fields...))) end
-# @block(CommentBlock)
-# @block(ExampleBlock)
-# @block(ExportBlock)
-# @block(SrcBlock)
-# @block(VerseBlock)
+abstract type Block <: Element end
+macro block(name, fields...) return :(@inherited(Block, $name, $(fields...))) end
+@block(CommentBlock, contents::PlainText)
+@block(ExampleBlock, contents::PlainText)
+@block(ExportBlock, contents::PlainText, backend::String)
+@block(SrcBlock, contents::PlainText, language::String)
+@block(VerseBlock, children::AbstractArray{Object,1})
+children(x::VerseBlock) = x.children
 
 abstract type GreaterElement <: Element end
 macro greater_element(name, fields...)
@@ -77,7 +82,7 @@ macro greater_element(name, fields...)
 end
 children(x::GreaterElement) = x.children
 
-# @greater_element(Drawer)
+@greater_element(Drawer)
 # @greater_element(PropertyDrawer)
 # @greater_element(FootnoteDefinition)
 @greater_element(Section)
@@ -105,7 +110,14 @@ children(x::Headline) = isnothing(x.section) ? x.headlines : vcat(x.section, x.h
 # @greater_element(Table)
 
 # abstract type GreaterBlock <: GreaterElement end
-# macro greater_block(name, fields...) return :(@inherited(GreaterBlock, $name, $(fields...))) end
+# macro greater_block(name, fields...)
+#     return :(@inherited(
+#         GreaterBlock,
+#         $name,
+#         children::AbstractArray{Element,1},
+#         $(fields...)))
+# end
+# children(x::GreaterBlock) = x.children
 # @greater_block(CenterBlock)
 # @greater_block(DynamicBlock)
 # @greater_block(SpecialBlock)

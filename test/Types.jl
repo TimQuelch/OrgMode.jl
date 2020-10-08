@@ -69,6 +69,57 @@ end
     @test children(p) == ts
 end
 
+# TODO Update these to reflect functionalty changes
+@testset "Basic Elements" begin
+    text = PlainText("some text for the element")
+    for T in [Clock, FixedWidthLine, LatexEnvironment]
+        @test T <: Element
+        @test T(text).contents == text
+        @test T(text) == T(contents=text)
+    end
+end
+
+@testset "Block" begin
+    @test isabstracttype(Block)
+    @test Block <: Element
+
+    @testset "Simple blocks" begin
+        text = PlainText("some text for the block")
+        for T in [CommentBlock, ExampleBlock]
+            @test T <: Block
+            @test T(text).contents == text
+            @test T(text) == T(contents=text)
+        end
+    end
+
+    @testset "SrcBlock" begin
+        @test SrcBlock <: Element
+
+        text = PlainText("some source code")
+        lang = "lang"
+        @test SrcBlock(text, lang).language == lang
+        @test SrcBlock(text, lang).contents == text
+        @test SrcBlock(text, lang) == SrcBlock(language=lang, contents=text)
+    end
+
+    @testset "ExportBlock" begin
+        @test ExportBlock <: Element
+
+        text = PlainText("some exported content")
+        back = "back"
+        @test ExportBlock(text, back).backend == back
+        @test ExportBlock(text, back).contents == text
+        @test ExportBlock(text, back) == ExportBlock(backend=back, contents=text)
+    end
+
+    @testset "VerseBlock" begin
+        @test VerseBlock <: Element
+
+        ts = [PlainText("a"), PlainText("b"), PlainText("c")]
+        @test children(VerseBlock(ts)) == ts
+    end
+end
+
 @testset "Document" begin
     es = [Headline(level=1), Section([]), Headline(level=3)]
     d = Document(es)
