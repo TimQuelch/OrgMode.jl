@@ -23,7 +23,7 @@ macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) 
 # @object(StatisticsCookies)
 # @object(Target)
 # @object(Timestamp)
-@object(PlainText, contents::AbstractString)
+@object(PlainText, contents::String)
 
 # abstract type GreaterObject <: Object end
 # macro greater_object(name, fields...) return :(@inherited(GreaterObject, $name, $(fields...))) end
@@ -54,7 +54,7 @@ macro element(name, fields...) return :(@inherited(Element, $name, $(fields...))
 # @element(Keyword)
 # @element(LatexEnvironment)
 # @element(NodeProperty)
-@element(Paragraph, children::AbstractArray{Object,1})
+@element(Paragraph, children::Vector{Object})
 children(p::Paragraph) = p.children
 # @element(Planning)
 # @element(TableRow)
@@ -72,7 +72,7 @@ macro greater_element(name, fields...)
     return :(@inherited(
         GreaterElement,
         $name,
-        children::AbstractArray{Element,1},
+        children::Vector{Element},
         $(fields...)))
 end
 children(x::GreaterElement) = x.children
@@ -84,12 +84,12 @@ children(x::GreaterElement) = x.children
 
 Base.@kwdef struct Headline <: GreaterElement
     level::Int
-    title::Union{AbstractString, Nothing} = nothing
-    todo::Union{AbstractString, Nothing} = nothing
-    tags::AbstractArray{AbstractString, 1} = []
-    priority::Union{AbstractChar, Nothing} = nothing
+    title::Union{String, Nothing} = nothing
+    todo::Union{String, Nothing} = nothing
+    tags::Vector{String} = []
+    priority::Union{Char, Nothing} = nothing
     section::Union{Section, Nothing} = nothing
-    headlines::AbstractArray{Headline, 1} = []
+    headlines::Vector{Headline} = []
     function Headline(level, title, todo, tags, priority, section, headlines)
         if !(level > 0)
             throw(DomainError("Headline level must be greater than 0 ($level)"))
@@ -113,7 +113,7 @@ children(x::Headline) = isnothing(x.section) ? x.headlines : vcat(x.section, x.h
 
 
 struct Document
-    elements::AbstractArray{Element,1}
+    elements::Vector{Element}
 end
 children(x::Document) = x.elements
 
