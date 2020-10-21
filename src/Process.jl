@@ -6,18 +6,7 @@ using OrgMode.Types
 using AbstractTrees
 using Lazy
 
-AbstractTrees.children(x::Document) = Types.children(x)
-function AbstractTrees.children(x::Environment)
-    try
-        return Types.children(x)
-    catch e
-        if e isa MethodError
-            return []
-        else
-            rethrow(e)
-        end
-    end
-end
+AbstractTrees.children(x::Union{Environment, Document}) = Types.children(x)
 
 function map(f, types, tree)
     @>>(
