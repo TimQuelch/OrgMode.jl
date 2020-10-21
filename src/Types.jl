@@ -65,10 +65,10 @@ children(p::Paragraph) = p.children
 
 abstract type Block <: Element end
 macro block(name, fields...) return :(@inherited(Block, $name, $(fields...))) end
-@block(CommentBlock, contents::PlainText)
-@block(ExampleBlock, contents::PlainText)
-@block(ExportBlock, contents::PlainText, backend::String)
-@block(SrcBlock, contents::PlainText, language::String)
+@block(CommentBlock, contents::String)
+@block(ExampleBlock, contents::String)
+@block(ExportBlock, contents::String, backend::String)
+@block(SrcBlock, contents::String, language::String)
 @block(VerseBlock, children::AbstractArray{Object,1})
 children(x::VerseBlock) = x.children
 

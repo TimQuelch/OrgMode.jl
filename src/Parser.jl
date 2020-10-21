@@ -141,9 +141,9 @@ function parse(s, t::Type{Block})
     if type === VerseBlock
         return type([PlainText(s)])
     elseif type === SrcBlock || type === ExportBlock
-        return type(PlainText(s), "placeholder!")
+        return type(s, "placeholder!")
     end
-    return type(PlainText(s))
+    return type(s)
 end
 
 function parse(s, t::Type{Drawer})

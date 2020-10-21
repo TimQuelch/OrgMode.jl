@@ -84,7 +84,7 @@ end
     @test Block <: Element
 
     @testset "Simple blocks" begin
-        text = PlainText("some text for the block")
+        text = "some text for the block"
         for T in [CommentBlock, ExampleBlock]
             @test T <: Block
             @test T(text).contents == text
@@ -95,7 +95,7 @@ end
     @testset "SrcBlock" begin
         @test SrcBlock <: Element
 
-        text = PlainText("some source code")
+        text = "some source code"
         lang = "lang"
         @test SrcBlock(text, lang).language == lang
         @test SrcBlock(text, lang).contents == text
@@ -105,7 +105,7 @@ end
     @testset "ExportBlock" begin
         @test ExportBlock <: Element
 
-        text = PlainText("some exported content")
+        text = "some exported content"
         back = "back"
         @test ExportBlock(text, back).backend == back
         @test ExportBlock(text, back).contents == text
