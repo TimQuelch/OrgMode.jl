@@ -14,6 +14,7 @@ macro inherited(super, name, fields...)
 end
 
 abstract type Environment end
+children(::Environment) = []
 
 abstract type Object <: Environment end
 macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) end
