@@ -69,14 +69,23 @@ end
     @test children(p) == ts
 end
 
-# TODO Update these to reflect functionalty changes
 @testset "Basic Elements" begin
-    text = PlainText("some text for the element")
-    for T in [Clock, FixedWidthLine, LatexEnvironment]
+    text = "some text for the element"
+    for T in [Clock]
         @test T <: Element
         @test T(text).contents == text
         @test T(text) == T(contents=text)
     end
+end
+
+@testset "LatexEnvironment" begin
+    @test LatexEnvironment <: Element
+
+    text = "contents"
+    environment = "equation*"
+    @test LatexEnvironment(text, environment).contents == "contents"
+    @test LatexEnvironment(text, environment).environment == "equation*"
+    @test LatexEnvironment(text, environment) == LatexEnvironment(environment=environment, contents=text)
 end
 
 @testset "Block" begin
@@ -84,7 +93,7 @@ end
     @test Block <: Element
 
     @testset "Simple blocks" begin
-        text = PlainText("some text for the block")
+        text = "some text for the block"
         for T in [CommentBlock, ExampleBlock]
             @test T <: Block
             @test T(text).contents == text
@@ -95,7 +104,7 @@ end
     @testset "SrcBlock" begin
         @test SrcBlock <: Element
 
-        text = PlainText("some source code")
+        text = "some source code"
         lang = "lang"
         @test SrcBlock(text, lang).language == lang
         @test SrcBlock(text, lang).contents == text
@@ -105,7 +114,7 @@ end
     @testset "ExportBlock" begin
         @test ExportBlock <: Element
 
-        text = PlainText("some exported content")
+        text = "some exported content"
         back = "back"
         @test ExportBlock(text, back).backend == back
         @test ExportBlock(text, back).contents == text
@@ -118,6 +127,13 @@ end
         ts = [PlainText("a"), PlainText("b"), PlainText("c")]
         @test children(VerseBlock(ts)) == ts
     end
+end
+
+@testset "FixedWidthLine" begin
+    @test FixedWidthLine <: Element
+
+    @test FixedWidthLine("content").contents == "content"
+    @test FixedWidthLine(contents="content") == FixedWidthLine("content")
 end
 
 @testset "Document" begin

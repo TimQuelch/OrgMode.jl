@@ -1,26 +1,32 @@
 module Parser
-export parse
+export OrgParseException, parse
 
 using ..Types
 
 using Lazy
 
+struct OrgParseException <: Exception
+    msg::String
+end
+
 const HEADLINE_RE= r"^(\*+)\s+(.*?)?\s*?$"m
 const NONEMPTY_LINE_RE= r"^.*\S+.*$"m
 
-const ELEMENT_BEGIN_RE = Dict(
+const ELEMENT_BEGIN_RE = IdDict(
     Clock => r"^\s*CLOCK:"m,
     LatexEnvironment => r"^\s*\\begin\{([A-Za-z0-9*]+)\}"m,
     Drawer => r"^\s*:((?:\w|[-_])+):\s*$"m,
     FixedWidthLine => r"^\s*:( |$)"m,
-    Block => r"^\s*#\+begin_(\S+)"mi,
+    Block => r"^\s*#\+begin_(\S+)\h*(?:\h(.*))?$"mi,
 )
 
-const ELEMENT_END_RE = Dict(
-    Drawer => r"^\s*:end:\s*$"mi
-)
+const DRAWER_END_RE = r"^\s*:end:\s*$"mi
+function latexEndRegex(envtype)
+    escaped = replace(envtype, "*" => raw"\*")
+    Regex("\\\\end{$escaped}\\s*\$", "mi")
+end
 
-const BLOCK_TYPE_STRINGS = Dict(
+const BLOCK_TYPE_STRINGS = IdDict(
     CommentBlock => "comment",
     ExampleBlock => "example",
     ExportBlock => "export",
@@ -40,10 +46,10 @@ const PARAGRAPH_BREAK_REGEX = Regex(
         p"\s*(?:",                    # Lines starting with whitespace group
         p"$|",                        # Empty lines
         p"\||",                       # Tables
-        p"\+(?:-+\+)+\s*$|",          # Tables
+        p"\+[-+]+\s*$|",              # Tables
         # Comments, keywords, blocks
         p"#(?: |$|\+(?:BEGIN_\S+|\S+(?:[.*])?:[\s]*))|",
-        p":(?: |$|.+:\s+$)|",         # Drawers and fixed width areas
+        p":(?: |$|.+:\s*$)|",         # Drawers and fixed width areas
         p"-{5,}\s*$|",                # Horizontal rules
         p"\\begin{([A-Za-z0-9*]+)}|", # LaTeX environments
         p"CLOCK:|",                   # Clock lines
@@ -62,9 +68,8 @@ function elementEnd(t::Type{LatexEnvironment}, s)
     @debug "Latex element string" s ELEMENT_BEGIN_RE[t]
     b = match(ELEMENT_BEGIN_RE[t], s)
     @debug "Latex begin match" b
-    envtype = replace(b[1], "*" => "\\*")
-    r = Regex("\\\\end\\{$envtype\\}\\s*\$", "m")
-    @debug "Latex end regex" r
+    r = latexEndRegex(b[1])
+    @debug "Latex end regex" r sub=s[b.offset + length(b.match):end]
     e = match(r, s, b.offset + length(b.match))
     @debug "Latex environment beginning and end" b e
     return e.offset + length(e.match)
@@ -79,8 +84,8 @@ function elementEnd(t::Type{Block}, s)
     return e.offset + length(e.match)
 end
 
-function elementEnd(t::Type{Drawer}, s)
-    e = match(ELEMENT_END_RE[t], s)
+function elementEnd(::Type{Drawer}, s)
+    e = match(DRAWER_END_RE, s)
     @debug "Drawer end" e
     return e.offset + length(e.match)
 end
@@ -91,7 +96,7 @@ function elementEnd(::Type{Paragraph}, s)
     if isnothing(e)
         return nothing
     else
-        m = match(r"\s*", s, e.offset)
+        m = match(r"\n*", s, e.offset)
         if isnothing(m)
             return e.offset - 1
         else
@@ -138,19 +143,37 @@ function parse(s, t::Type{Block})
     @debug "Parsing block from" s
     m = match(ELEMENT_BEGIN_RE[t], s)
     type = findfirst(s -> s == lowercase(m[1]), BLOCK_TYPE_STRINGS)
+    s = strip(s)
+    inner = SubString(s, findfirst('\n', s) + 1, findlast('\n', s)-1)
     if type === VerseBlock
-        return type([PlainText(s)])
+        return type([PlainText(inner)])
     elseif type === SrcBlock || type === ExportBlock
-        return type(PlainText(s), "placeholder!")
+        if isnothing(m[2])
+            throw(OrgParseException("`export` and `src` blocks must contain data: $m.match"))
+        end
+        return type(inner, m[2])
     end
-    return type(PlainText(s))
+    return type(inner)
+end
+
+function parse(s, t::Type{LatexEnvironment})
+    @debug "Parsing Latex environment from" s
+    b = match(ELEMENT_BEGIN_RE[t], s)
+    e = findall(latexEndRegex(b[1]), s)[end][begin]
+    return LatexEnvironment(strip(SubString(s, b.offset + length(b.match), e-1)), b[1])
 end
 
 function parse(s, t::Type{Drawer})
     @debug "Parsing $t from" s
-    b = match(ELEMENT_BEGIN_RE[t], s)
-    e = match(ELEMENT_END_RE[t], s)
-    return Drawer(extractElements(SubString(s, b.offset + length(b.match), e.offset)))
+    m = match(ELEMENT_BEGIN_RE[t], s)
+    s = strip(s)
+    contents = strip(SubString(s, findfirst('\n', s), findlast('\n', s)))
+    return Drawer(name=m[1], children=extractElements(contents))
+end
+
+function parse(s, ::Type{FixedWidthLine})
+    @debug "Parsing FixedWidthLine from" s
+    return FixedWidthLine(lstrip(s, ':'))
 end
 
 function parse(s, ::Type{Section})

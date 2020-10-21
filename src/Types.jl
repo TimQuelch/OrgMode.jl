@@ -50,13 +50,13 @@ macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) 
 abstract type Element <: Environment end
 macro element(name, fields...) return :(@inherited(Element, $name, $(fields...))) end
 # @element(BabelCall)
-@element(Clock, contents::PlainText)
+@element(Clock, contents::String)
 # @element(Comment)
 # @element(DiarySexp)
-@element(FixedWidthLine, contents::PlainText)
+@element(FixedWidthLine, contents::String)
 # @element(HorizontalRule)
 # @element(Keyword)
-@element(LatexEnvironment, contents::PlainText)
+@element(LatexEnvironment, contents::String, environment::String)
 # @element(NodeProperty)
 @element(Paragraph, children::Vector{Object})
 children(p::Paragraph) = p.children
@@ -65,10 +65,10 @@ children(p::Paragraph) = p.children
 
 abstract type Block <: Element end
 macro block(name, fields...) return :(@inherited(Block, $name, $(fields...))) end
-@block(CommentBlock, contents::PlainText)
-@block(ExampleBlock, contents::PlainText)
-@block(ExportBlock, contents::PlainText, backend::String)
-@block(SrcBlock, contents::PlainText, language::String)
+@block(CommentBlock, contents::String)
+@block(ExampleBlock, contents::String)
+@block(ExportBlock, contents::String, backend::String)
+@block(SrcBlock, contents::String, language::String)
 @block(VerseBlock, children::Vector{Object})
 children(x::VerseBlock) = x.children
 
@@ -82,7 +82,7 @@ macro greater_element(name, fields...)
 end
 children(x::GreaterElement) = x.children
 
-@greater_element(Drawer)
+@greater_element(Drawer, name::String)
 # @greater_element(PropertyDrawer)
 # @greater_element(FootnoteDefinition)
 @greater_element(Section)
