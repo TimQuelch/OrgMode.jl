@@ -69,7 +69,7 @@ macro block(name, fields...) return :(@inherited(Block, $name, $(fields...))) en
 @block(ExampleBlock, contents::PlainText)
 @block(ExportBlock, contents::PlainText, backend::String)
 @block(SrcBlock, contents::PlainText, language::String)
-@block(VerseBlock, children::AbstractArray{Object,1})
+@block(VerseBlock, children::Vector{Object})
 children(x::VerseBlock) = x.children
 
 abstract type GreaterElement <: Element end
@@ -114,7 +114,7 @@ children(x::Headline) = isnothing(x.section) ? x.headlines : vcat(x.section, x.h
 #     return :(@inherited(
 #         GreaterBlock,
 #         $name,
-#         children::AbstractArray{Element,1},
+#         children::Vector{Element},
 #         $(fields...)))
 # end
 # children(x::GreaterBlock) = x.children
