@@ -1,8 +1,5 @@
 """
 Contains type definitions
-
-# Exports
-$(EXPORTS)
 """
 module Types
 export Document, Environment, Element, GreaterElement, Block, Object, Section, Headline, PlainText
@@ -14,12 +11,17 @@ export children
 using AbstractTrees
 using DocStringExtensions
 
-@template TYPES =
+@template (DEFAULT, TYPES) =
     """
     $(TYPEDEF)
-
-    # Fields
+    $(DOCSTRING)
     $(TYPEDFIELDS)
+    """
+
+@template (FUNCTIONS, METHODS, MACROS) =
+    """
+    $(TYPEDSIGNATURES)
+    $(DOCSTRING)
     """
 
 macro inherited(super, name, fields...)
@@ -30,10 +32,15 @@ macro inherited(super, name, fields...)
     end
 end
 
+"The base type for a component of an Org Mode document. "
 abstract type Environment end
+
+"Fallback for `children` for any `Environment` types which don't have defined children"
 children(::Environment) = []
 AbstractTrees.children(x::Environment) = Types.children(x)
 
+"""Objects are Environments that are 'smaller' than a paragraph.
+Paragraphs (and other elements that contain 'text') are composed of different objects"""
 abstract type Object <: Environment end
 macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) end
 # @object(Entity)
@@ -46,6 +53,7 @@ macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) 
 # @object(StatisticsCookies)
 # @object(Target)
 # @object(Timestamp)
+"The base plain text object"
 @object(PlainText, contents::String)
 
 # abstract type GreaterObject <: Object end
@@ -66,18 +74,24 @@ macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) 
 # @text_markup(Underline)
 # @text_markup(Code)
 
+"""Elements are Environments that are on a level equivalent to a paragraph. """
 abstract type Element <: Environment end
 macro element(name, fields...) return :(@inherited(Element, $name, $(fields...))) end
 # @element(BabelCall)
 @element(Clock, contents::String)
 # @element(Comment)
 # @element(DiarySexp)
+"""Fixed width lines are lines prefixed with a ':'.
+The contents (without the ':') are stored in the `contents string`"""
 @element(FixedWidthLine, contents::String)
 # @element(HorizontalRule)
 # @element(Keyword)
+"A LaTeX environment surrounded by `\begin{<env>} ... \end{<env>}`"
 @element(LatexEnvironment, contents::String, environment::String)
 # @element(NodeProperty)
+"A paragraph. Paragraphs contain many objects"
 @element(Paragraph, children::Vector{Object})
+"Get the children of a `Paragraph`"
 children(p::Paragraph) = p.children
 # @element(Planning)
 # @element(TableRow)

@@ -1,8 +1,5 @@
 """
 Contains functions relating to parsing the Org Mode source to the element tree.
-
-# Exports
-$(EXPORTS)
 """
 module Parser
 export OrgParseException, parse

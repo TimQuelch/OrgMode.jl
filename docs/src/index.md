@@ -11,5 +11,5 @@ Pages = ["index.md"]
 ```
 
 ```@autodocs
-Modules = [OrgMode, OrgMode.Parser, OrgMode.Types]
+Modules = [OrgMode, OrgMode.Parser, OrgMode.Types, OrgMode.Process]
 ```
