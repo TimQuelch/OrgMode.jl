@@ -10,11 +10,14 @@ using Lazy
 using DocStringExtensions
 
 """
-    $(FUNCTIONNAME)
+    $(FUNCTIONNAME)(s)
 
-Parses org syntax into a syntax tree
+Parses an org string into a [`Document`](@ref)
 
-$(TYPEDSIGNATURES)
+    $(FUNCTIONNAME)(s, type)
+
+Parses an string into a `type`. This method is mostly used internally when recursively when
+parsing a document.
 """
 function parse end
 
