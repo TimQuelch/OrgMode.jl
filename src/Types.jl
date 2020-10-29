@@ -87,7 +87,7 @@ The contents (without the ':') are stored in the `contents string`"""
 @element(FixedWidthLine, contents::String)
 # @element(HorizontalRule)
 # @element(Keyword)
-"A LaTeX environment surrounded by `\begin{<env>} ... \end{<env>}`"
+"A LaTeX environment surrounded by `\\begin{<env>} ... \\end{<env>}`"
 @element(LatexEnvironment, contents::String, environment::String)
 # @element(NodeProperty)
 "A paragraph. Paragraphs contain many objects"
@@ -109,7 +109,7 @@ macro block(name, fields...) return :(@inherited(Block, $name, $(fields...))) en
 TODO: Handle header args"""
 @block(SrcBlock, contents::String, language::String)
 """Verse blocks are surrounded by `#+begin_verse ... #+end_verse`.
-Verse blocks contain objects rather than unparsed text"""
+The contents of a Verse block are parsed to Objects rather than stored as plain text"""
 @block(VerseBlock, children::Vector{Object})
 children(x::VerseBlock) = x.children
 

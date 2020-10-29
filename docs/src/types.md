@@ -1,5 +1,10 @@
 # Types
 
+```@contents
+Pages = ["types.md"]
+Depth = 4
+```
+
 ```@docs
 Document
 Environment
