@@ -129,11 +129,6 @@ function parse(s, ::Type{Document})
     return Document([section; headlines])
 end
 
-function parse(s, ::Type{T}) where {T<:Element}
-    @debug "Parsing generic element ($T) from" s
-    return T(PlainText(s))
-end
-
 function parse(s, ::Type{Paragraph})
     @debug "Parsing paragraph from" s
     return Paragraph([PlainText(s)])
