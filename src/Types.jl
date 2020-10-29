@@ -1,3 +1,9 @@
+"""
+Contains type definitions
+
+# Exports
+$(EXPORTS)
+"""
 module Types
 export Document, Environment, Element, GreaterElement, Block, Object, Section, Headline, PlainText
 export Paragraph, Clock, LatexEnvironment, FixedWidthLine, Drawer, CommentBlock, SrcBlock
@@ -6,6 +12,15 @@ export ExampleBlock, ExportBlock, VerseBlock, CenterBlock, QuoteBlock, SpecialBl
 export children
 
 using AbstractTrees
+using DocStringExtensions
+
+@template TYPES =
+    """
+    $(TYPEDEF)
+
+    # Fields
+    $(TYPEDFIELDS)
+    """
 
 macro inherited(super, name, fields...)
     return quote

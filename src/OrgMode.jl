@@ -1,4 +1,23 @@
+"""
+The main public interface
+"""
 module OrgMode
+
+using DocStringExtensions
+
+@template MODULES =
+    """
+    $(DOCSTRING)
+    # Exports
+    $(EXPORTS)
+    """
+
+@template TYPES =
+    """
+    $(TYPEDEF)
+    # Fields
+    $(TYPEDFIELDS)
+    """
 
 include("Types.jl")
 include("Parser.jl")
