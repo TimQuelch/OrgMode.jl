@@ -12,13 +12,6 @@ using DocStringExtensions
     $(EXPORTS)
     """
 
-@template TYPES =
-    """
-    $(TYPEDEF)
-    # Fields
-    $(TYPEDFIELDS)
-    """
-
 include("Types.jl")
 include("Parser.jl")
 include("Process.jl")
