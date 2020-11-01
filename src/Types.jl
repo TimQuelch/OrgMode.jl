@@ -5,6 +5,8 @@ export ExampleBlock, ExportBlock, VerseBlock
 
 export children
 
+using AbstractTrees
+
 macro inherited(super, name, fields...)
     return quote
         Base.@kwdef struct $name <: $super
@@ -15,6 +17,7 @@ end
 
 abstract type Environment end
 children(::Environment) = []
+AbstractTrees.children(x::Environment) = Types.children(x)
 
 abstract type Object <: Environment end
 macro object(name, fields...) return :(@inherited(Object, $name, $(fields...))) end
@@ -125,7 +128,7 @@ children(x::Headline) = isnothing(x.section) ? x.headlines : vcat(x.section, x.h
 # @greater_block(QuoteBlock)
 
 
-struct Document
+struct Document <: Environment
     elements::Vector{Element}
 end
 children(x::Document) = x.elements
