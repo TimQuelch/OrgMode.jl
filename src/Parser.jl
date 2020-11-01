@@ -91,7 +91,8 @@ function elementEnd(::Type{Drawer}, s)
 end
 
 function elementEnd(::Type{Paragraph}, s)
-    e = match(PARAGRAPH_BREAK_REGEX, s)
+    @assert length(s) > 1
+    e = match(PARAGRAPH_BREAK_REGEX, s, 2)
     @debug "Paragraph end" e
     if isnothing(e)
         return nothing
