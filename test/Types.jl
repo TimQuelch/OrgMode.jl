@@ -90,7 +90,9 @@ end
 
 @testset "Block" begin
     @test isabstracttype(Block)
+    @test isabstracttype(GreaterBlock)
     @test Block <: Element
+    @test GreaterBlock <: GreaterElement
 
     @testset "Simple blocks" begin
         text = "some text for the block"
@@ -126,6 +128,31 @@ end
 
         ts = [PlainText("a"), PlainText("b"), PlainText("c")]
         @test children(VerseBlock(ts)) == ts
+    end
+
+    @testset "QuoteBlock" begin
+        @test QuoteBlock <: GreaterElement
+
+        cs = [Paragraph(children=[]), ExportBlock(contents="", backend="html")]
+        @test children(QuoteBlock(cs)) == cs
+        @test QuoteBlock(children=cs) == QuoteBlock(cs)
+    end
+
+    @testset "CenterBlock" begin
+        @test CenterBlock <: GreaterElement
+
+        cs = [Paragraph(children=[]), ExportBlock(contents="", backend="html")]
+        @test children(CenterBlock(cs)) == cs
+        @test CenterBlock(children=cs) == CenterBlock(cs)
+    end
+
+    @testset "SpecialBlock" begin
+        @test SpecialBlock <: GreaterElement
+
+        cs = [Paragraph(children=[]), ExportBlock(contents="", backend="html")]
+        @test children(SpecialBlock(cs, "name")) == cs
+        @test SpecialBlock(cs, "name").name == "name"
+        @test SpecialBlock(name="name", children=cs) == SpecialBlock(cs, "name")
     end
 end
 
