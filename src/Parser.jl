@@ -126,7 +126,14 @@ function parse(s, ::Type{Document})
     e = Element[]
     @debug "Parsing document from" s
     (section, headlines) = extractSectionAndHeadlines(s)
-    return Document([section; headlines])
+    elements = []
+    if !isnothing(section)
+        push!(elements, section)
+    end
+    if !isnothing(headlines)
+        append!(elements, headlines)
+    end
+    return Document(elements)
 end
 
 function parse(s, ::Type{Paragraph})
