@@ -6,8 +6,6 @@ using OrgMode.Types
 using AbstractTrees
 using Lazy
 
-AbstractTrees.children(x::Union{Environment, Document}) = Types.children(x)
-
 function map(f, types, tree)
     @>>(
         tree,
@@ -18,6 +16,6 @@ function map(f, types, tree)
     )
 end
 
-map(f, type::DataType, tree) = map(f, [type], tree)
+map(f, type::DataType, tree) = map(f, (type,), tree)
 
 end
