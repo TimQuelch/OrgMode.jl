@@ -1,7 +1,7 @@
 module Types
 export Document, Environment, Element, GreaterElement, Block, Object, Section, Headline, PlainText
 export Paragraph, Clock, LatexEnvironment, FixedWidthLine, Drawer, CommentBlock, SrcBlock
-export ExampleBlock, ExportBlock, VerseBlock
+export ExampleBlock, ExportBlock, VerseBlock, CenterBlock, QuoteBlock, SpecialBlock, GreaterBlock
 
 export children
 
@@ -112,21 +112,19 @@ children(x::Headline) = isnothing(x.section) ? x.headlines : vcat(x.section, x.h
 # @greater_element(Item)
 # @greater_element(PlainList)
 # @greater_element(Table)
+# @greater_element(DynamicBlock)
 
-# abstract type GreaterBlock <: GreaterElement end
-# macro greater_block(name, fields...)
-#     return :(@inherited(
-#         GreaterBlock,
-#         $name,
-#         children::Vector{Element},
-#         $(fields...)))
-# end
-# children(x::GreaterBlock) = x.children
-# @greater_block(CenterBlock)
-# @greater_block(DynamicBlock)
-# @greater_block(SpecialBlock)
-# @greater_block(QuoteBlock)
-
+abstract type GreaterBlock <: GreaterElement end
+macro greater_block(name, fields...)
+    return :(@inherited(
+        GreaterBlock,
+        $name,
+        children::Vector{Element},
+        $(fields...)))
+end
+@greater_block(CenterBlock)
+@greater_block(QuoteBlock)
+@greater_block(SpecialBlock, name::String)
 
 struct Document <: Environment
     elements::Vector{Element}

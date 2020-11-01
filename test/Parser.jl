@@ -162,6 +162,58 @@ using OrgMode.Parser
         @test typeof(b) == VerseBlock
         @test typeof.(children(b)) == [PlainText]
     end
+
+    @testset "CenterBlock" begin
+        s = """
+            #+begin_center
+            Here is a Paragraph
+
+            And another
+
+            #+begin_verse
+            Nested block
+            #+end_verse
+            #+end_center
+            """
+        b = OrgMode.parse(s, Block)
+        @test typeof(b) == CenterBlock
+        @test typeof.(children(b)) == [Paragraph, Paragraph, VerseBlock]
+    end
+
+    @testset "QuoteBlock" begin
+        s = """
+            #+begin_quote
+            Here is a Paragraph
+
+            And another
+
+            #+begin_verse
+            Nested block
+            #+end_verse
+            #+end_quote
+            """
+        b = OrgMode.parse(s, Block)
+        @test typeof(b) == QuoteBlock
+        @test typeof.(children(b)) == [Paragraph, Paragraph, VerseBlock]
+    end
+
+    @testset "SpecialBlock" begin
+        s = """
+            #+begin_imspecial
+            Here is a Paragraph
+
+            And another
+
+            #+begin_verse
+            Nested block
+            #+end_verse
+            #+end_imspecial
+            """
+        b = OrgMode.parse(s, Block)
+        @test typeof(b) == SpecialBlock
+        @test b.name == "imspecial"
+        @test typeof.(children(b)) == [Paragraph, Paragraph, VerseBlock]
+    end
 end
 
 function testend(type, str, e)

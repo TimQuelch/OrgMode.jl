@@ -32,8 +32,8 @@ const BLOCK_TYPE_STRINGS = IdDict(
     ExportBlock => "export",
     SrcBlock => "src",
     VerseBlock => "verse",
-    # CenterBlock => "center",
-    # QuoteBlock => "quote",
+    CenterBlock => "center",
+    QuoteBlock => "quote",
 )
 
 macro p_str(s) s end
@@ -155,6 +155,10 @@ function parse(s, t::Type{Block})
             throw(OrgParseException("`export` and `src` blocks must contain data: $m.match"))
         end
         return type(inner, m[2])
+    elseif isnothing(type)
+        return SpecialBlock(children=extractElements(inner), name=m[1])
+    elseif type <: GreaterBlock
+        return type(children=extractElements(inner))
     end
     return type(inner)
 end
