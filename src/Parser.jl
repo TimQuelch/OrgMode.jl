@@ -116,7 +116,7 @@ function extractElement(s)
     if isnothing(endpos)
         return (parse(s, type), "")
     else
-        return (parse(SubString(s, 1, endpos - 1), type), SubString(s, endpos))
+        return (parse(SubString(s, 1, prevind(s, endpos)), type), SubString(s, endpos))
     end
 end
 
@@ -147,7 +147,13 @@ function parse(s, t::Type{Block})
     m = match(ELEMENT_BEGIN_RE[t], s)
     type = findfirst(s -> s == lowercase(m[1]), BLOCK_TYPE_STRINGS)
     s = strip(s)
-    inner = SubString(s, findfirst('\n', s) + 1, findlast('\n', s)-1)
+    @debug "Inner" start=findfirst('\n', s) finish=findlast('\n', s) length=length(s)
+    # nextind/prevind required because UTF8 characters are not valid indexes
+    inner = SubString(
+        s,
+        nextind(s, findfirst('\n', s)),
+        prevind(s, findlast('\n', s))
+    )
     if type === VerseBlock
         return type([PlainText(inner)])
     elseif type === SrcBlock || type === ExportBlock
