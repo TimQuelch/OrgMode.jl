@@ -1,5 +1,5 @@
 using OrgMode
-using OrgMode: map, parse
+using OrgMode: map, parse, getall
 using OrgMode.Types
 
 @testset "map" begin
@@ -23,4 +23,7 @@ using OrgMode.Types
     @test map(typeof, Section, d) == [Section, Section, Section, Section]
     @test map(typeof, [Headline, Section], d) == [Section, Headline, Section, Headline,
                                                   Section, Headline, Headline, Section]
+    @test typeof.(getall(Section, d)) == [Section, Section, Section, Section]
+    @test typeof.(getall([Headline, Section], d)) == [Section, Headline, Section, Headline,
+                                                      Section, Headline, Headline, Section]
 end

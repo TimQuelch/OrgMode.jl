@@ -1,5 +1,5 @@
 module Process
-export map
+export map, getall
 
 using OrgMode.Types
 
@@ -17,5 +17,7 @@ function map(f, types, tree)
 end
 
 map(f, type::DataType, tree) = map(f, (type,), tree)
+
+getall(types, tree) = map(identity, types, tree)
 
 end
