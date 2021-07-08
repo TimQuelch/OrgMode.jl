@@ -1,10 +1,34 @@
+"""
+Contains functions relating to parsing the Org Mode source to the element tree.
+"""
 module Parser
 export OrgParseException, parse
 
 using ..Types
 
 using Lazy
+using DocStringExtensions
 
+"""
+    $(FUNCTIONNAME)(s)
+
+Parses an org string into a [`Document`](@ref)
+
+    $(FUNCTIONNAME)(s, type)
+
+Parses an string into a `type`. This method is mostly used internally when recursively when
+parsing a document.
+"""
+function parse end
+
+"""
+$(TYPEDEF)
+
+Thrown on ill-formed org syntax
+
+# Fields
+$(TYPEDFIELDS)
+"""
 struct OrgParseException <: Exception
     msg::String
 end

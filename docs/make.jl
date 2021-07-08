@@ -1,8 +1,11 @@
 using OrgMode
+using OrgMode.Types
+using OrgMode.Parser
+using OrgMode.Process
 using Documenter
 
 makedocs(;
-    modules=[OrgMode],
+    modules=[OrgMode, OrgMode.Types, OrgMode.Parser, OrgMode.Process],
     authors="Tim Quelch <tim@tquelch.com> and contributors",
     repo="https://github.com/TimQuelch/OrgMode.jl/blob/{commit}{path}#L{line}",
     sitename="OrgMode.jl",
@@ -13,6 +16,8 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Usage" => "usage.md",
+        "Types" => "types.md",
     ],
 )
 
