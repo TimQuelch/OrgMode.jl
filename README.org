@@ -4,3 +4,5 @@
 [[https://TimQuelch.github.io/OrgMode.jl/dev][https://img.shields.io/badge/docs-dev-blue.svg]]
 [[https://github.com/TimQuelch/OrgMode.jl/actions][https://github.com/TimQuelch/OrgMode.jl/workflows/CI/badge.svg]]
 [[https://codecov.io/gh/TimQuelch/OrgMode.jl][https://codecov.io/gh/TimQuelch/OrgMode.jl/branch/master/graph/badge.svg]]
+
+This project is pretty much abandoned, however @tecosaur has implemented a parser (of the same name) which implements nearly all the goals of this library https://github.com/tecosaur/OrgMode.jl
